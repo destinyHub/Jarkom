@@ -7,6 +7,7 @@ package tugasjarkom;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -29,6 +30,8 @@ public class Server {
     private Socket          socket   = null; 
     private ServerSocket    server   = null; 
     private DataInputStream in       =  null; 
+    private DataOutputStream out     = null;
+    private Socket[] clientSocket = null;
   
     // constructor with port 
     public Server(int port) 
@@ -42,22 +45,38 @@ public class Server {
             System.out.println("Waiting for a client ..."); 
   
             socket = server.accept(); 
-            System.out.println("Client accepted"); 
+            System.out.println("Client accepted");
+            
+            //TES
+            int portClient = socket.getPort();
+            int counter = 0;
+            this.clientSocket = new Socket[2];
+            this.clientSocket[counter] = this.socket; counter++;
   
             // takes input from the client socket 
             in = new DataInputStream( 
                 new BufferedInputStream(socket.getInputStream())); 
   
+            // TES sends output to the socket 
+            out    = new DataOutputStream(clientSocket[0].getOutputStream()); 
+            
             String line = ""; 
+            
+            //TES
+            String temp = "";
   
             // reads message from client until "Over" is sent 
-            while (!line.equals("Over")) 
+            while (!line.equalsIgnoreCase("Over")) 
             { 
                 try
                 { 
+                    //Print incoming chat from client
                     line = in.readUTF(); 
                     System.out.println(line); 
-  
+                    
+                    //Broadcast to clients
+                    temp = "'"+line+"'";
+                    out.writeUTF("Accepted ,U Sent: "+temp);
                 } 
                 catch(Exception i) 
                 { 
