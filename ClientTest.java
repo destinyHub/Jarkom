@@ -26,7 +26,7 @@ public class ClientTest {
 		String s;
 		while (  true )
 		{
-			System.out.print("Client : ");
+			System.out.print(sk+" : ");
 			s=stdin.readLine();
 			sout.println(s);
                         if ( s.equalsIgnoreCase("BYE") )
@@ -35,7 +35,7 @@ public class ClientTest {
  			   break;
                         }
 			s=sin.readLine();
-			System.out.print("Server : "+s+"\n");
+			System.out.print(s+"\n");
   			
 		}
 		 sk.close();

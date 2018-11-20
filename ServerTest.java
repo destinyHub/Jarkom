@@ -26,7 +26,7 @@ public class ServerTest {
 
     int port;
     ServerSocket server=null;
-    Socket client=null;
+    Socket[] client=null;
     ExecutorService pool = null;
     int clientcount=0;
     
@@ -43,13 +43,24 @@ public class ServerTest {
     public void startServer() throws IOException {
         
         server=new ServerSocket(5000);
+        Scanner sc = new Scanner(System.in);
         System.out.println("Server Booted");
         System.out.println("Any client can stop the server by sending -1");
+        System.out.print("Jumlah client : ");
+        int jumlah_client = sc.nextInt();
+        this.client = new Socket[jumlah_client];
         while(true)
         {
-            client=server.accept();
+            client[clientcount]=server.accept();
             clientcount++;
-            ServerThread runnable= new ServerThread(client,clientcount,this);
+//            ServerThread runnable= new ServerThread(client,clientcount,this);
+//            pool.execute(runnable);
+            if (clientcount==jumlah_client){
+                break;
+            }
+        }
+        for(int i = 0 ; i<jumlah_client ; i++){
+            ServerThread runnable= new ServerThread(client,i,this);
             pool.execute(runnable);
         }
         
@@ -58,23 +69,21 @@ public class ServerTest {
     private static class ServerThread implements Runnable {
         
         ServerTest server=null;
-        Socket client=null;
+        Socket[] client=null;
         BufferedReader cin;
         PrintStream cout;
         Scanner sc=new Scanner(System.in);
         int id;
         String s;
         
-        ServerThread(Socket client, int count ,ServerTest server ) throws IOException {
+        ServerThread(Socket[] client, int count ,ServerTest server ) throws IOException {
             
             this.client=client;
             this.server=server;
             this.id=count;
-            System.out.println("Connection "+id+"established with client "+client);
+            System.out.println("Connection "+id+" established with client "+client[id]);
             
-            cin=new BufferedReader(new InputStreamReader(client.getInputStream()));
-            cout=new PrintStream(client.getOutputStream());
-        
+            
         }
 
         @Override
@@ -82,12 +91,14 @@ public class ServerTest {
             int x=1;
          try{
          while(true){
+               cin=new BufferedReader(new InputStreamReader(client[id].getInputStream()));
                s=cin.readLine();
-  			 
+//               cout=new PrintStream(client.getOutputStream());
+  			
 			System. out.print("Client("+id+") :"+s+"\n");
-			System.out.print("Server : ");
+//			System.out.print("Server : ");
 			//s=stdin.readLine();
-                            s=sc.nextLine();
+//                            s=sc.nextLine();
                         if (s.equalsIgnoreCase("bye"))
                         {
                             cout.println("BYE");
@@ -95,13 +106,18 @@ public class ServerTest {
                             System.out.println("Connection ended by server");
                             break;
                         }
-			cout.println(s);
+                        for (Socket record : client){
+                            cout=new PrintStream(record.getOutputStream());
+                            cout.print("Client : "+record);
+                            cout.println(s);
+                        }
 		}
 		
-            
+                for (Socket record : client){
+                    record.close();
+                }
                 cin.close();
-                client.close();
-		cout.close();
+                cout.close();
                 if(x==0) {
 			System.out.println( "Server cleaning up." );
 			System.exit(0);
